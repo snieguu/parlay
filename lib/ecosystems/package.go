@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/package-url/packageurl-go"
 
@@ -76,6 +77,16 @@ func GetPackageVersionData(purl packageurl.PackageURL) (*packages.GetRegistryPac
 }
 
 func purlToEcosystemsRegistry(purl packageurl.PackageURL) string {
+	if len(purl.Qualifiers) > 0 {
+		qualifiersMap := purl.Qualifiers.Map()
+		if repoURL, ok := qualifiersMap["repository_url"]; ok && repoURL != "" {
+			parsedURL, err := url.Parse(repoURL)
+			if err == nil && parsedURL.Host != "" {
+				return parsedURL.Host
+			}
+		}
+	}
+
 	return map[string]string{
 		packageurl.TypeApk:       "alpine-edge",
 		packageurl.TypeCargo:     "crates.io",
